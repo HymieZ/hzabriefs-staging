@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Official Redcon1 Store — Intentions Brief</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface-2: #232733;
+    --border: #2d3140;
+    --text: #e8eaed;
+    --text-muted: #8b8fa3;
+    --accent: #7c6ef0;
+    --accent-light: #9d93f5;
+    --success: #34d399;
+    --danger: #d94f4f;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px;
+  }
+  .container { max-width: 680px; margin: 0 auto; }
+  .header {
+    text-align: center;
+    margin-bottom: 32px;
+    padding: 32px 20px;
+    background: var(--surface);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+  }
+  .badge {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    margin-bottom: 4px;
+  }
+  .header p { color: var(--text-muted); font-size: 14px; }
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent-light);
+    margin-bottom: 20px;
+  }
+  .field { margin-bottom: 20px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .hint { font-weight: 400; color: var(--text-muted); font-size: 12px; }
+  input[type="text"], input[type="number"], input[type="date"], textarea, select {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 15px;
+    transition: border-color 0.2s;
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  textarea { min-height: 100px; resize: vertical; }
+  select { cursor: pointer; }
+  .row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+  .checkbox-group label:has(input:checked) {
+    border-color: var(--accent);
+    background: rgba(124, 110, 240, 0.1);
+  }
+  .checkbox-group input { accent-color: var(--accent); cursor: pointer; }
+  .radio-group {
+    display: flex;
+    gap: 12px;
+  }
+  .radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+  .radio-group label:has(input:checked) {
+    border-color: var(--accent);
+    background: rgba(124, 110, 240, 0.1);
+  }
+  .radio-group input { accent-color: var(--accent); cursor: pointer; }
+  .submit-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    margin-top: 8px;
+  }
+  .submit-btn:hover { opacity: 0.9; }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  #success {
+    display: none;
+    text-align: center;
+    padding: 60px 20px;
+  }
+  #success .checkmark {
+    width: 64px; height: 64px; background: var(--success);
+    border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; margin: 0 auto 20px; font-size: 28px;
+  }
+  #success h2 { font-family: 'DM Serif Display', serif; font-size: 24px; margin-bottom: 8px; }
+  #success p { color: var(--text-muted); }
+  .error-message {
+    display: none; background: rgba(217, 79, 79, 0.1);
+    border: 1px solid var(--danger); border-radius: 8px;
+    padding: 16px; margin-bottom: 20px; color: var(--danger);
+    font-size: 14px; text-align: center;
+  }
+  .required { color: var(--danger); }
+
+  /* ===== FIXED METRICS LAYOUT (v3+) ===== */
+  .metric-card {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .metric-card:last-child { margin-bottom: 0; }
+  .metric-card .metric-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent-light);
+    margin-bottom: 12px;
+  }
+  .metric-card .metric-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .metric-card .metric-inputs label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    display: block;
+  }
+  .metric-card .metric-inputs input {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 15px;
+  }
+  .metric-card .metric-inputs input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  @media (max-width: 600px) {
+    .row-2 { grid-template-columns: 1fr; }
+    .radio-group { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="badge">Monday Brief</div>
+    <h1>Official Redcon1 Store — Intentions Brief</h1>
+    <p>Forward-looking weekly plan. Submit Monday morning before standup.</p>
+  </div>
+  <div id="error" class="error-message"></div>
+  <form id="briefForm" autocomplete="off">
+    <div class="section">
+      <div class="section-title">PM Information</div>
+      <div class="row-2">
+        <div class="field">
+          <label>PM Name <span class="required">*</span></label>
+          <select id="pm_name" required autocomplete="off">
+            <option value="">Select your name</option>
+            <option>Sheralyn</option>
+            <option>Kristina</option>
+            <option>Ahsan</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Week of <span class="required">*</span></label>
+          <input type="date" id="week_of" required>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Account Pulse</div>
+      <div class="field">
+        <label>Full Account Summary <span class="required">*</span></label>
+        <textarea id="account_pulse" required placeholder="Give a full account summary: What's the overall health of the account right now? What are sales doing and why? Any PPC changes, stock issues, listing problems, or client concerns? What's the team working on and where does it stand? Write enough that someone reading this cold understands exactly where this account is without needing to ask questions." autocomplete="off"></textarea>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Client Health Assessment</div>
+      <div class="row-2">
+        <div class="field">
+          <label>Is this account at risk of cancellation within 90 days? <span class="required">*</span></label>
+          <div class="radio-group">
+            <label><input type="radio" name="cancellation_risk" value="Yes" required> Yes</label>
+            <label><input type="radio" name="cancellation_risk" value="Likely"> Likely</label>
+            <label><input type="radio" name="cancellation_risk" value="Unlikely"> Unlikely</label>
+            <label><input type="radio" name="cancellation_risk" value="No"> No</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Client Sentiment <span class="required">*</span></label>
+          <div class="radio-group">
+            <label><input type="radio" name="client_sentiment" value="Very Happy" required> Very Happy</label>
+            <label><input type="radio" name="client_sentiment" value="Somewhat Happy"> Somewhat Happy</label>
+            <label><input type="radio" name="client_sentiment" value="Neutral"> Neutral</label>
+            <label><input type="radio" name="client_sentiment" value="Slightly Upset"> Slightly Upset</label>
+            <label><input type="radio" name="client_sentiment" value="Very Upset"> Very Upset</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">1. Executive Account Update</div>
+      <div class="field">
+        <label>Situational Summary <span class="required">*</span></label>
+        <textarea id="exec_summary" required placeholder="What specific changes happened since last week? What's driving current performance up or down? Any pending items from last week that carried over? Be specific — names, ASINs, numbers." autocomplete="off"></textarea>
+      </div>
+    </div>
+
+    <!-- FIXED METRICS SECTION — each metric in its own card -->
+    <div class="section">
+      <div class="section-title">2. Sales Direction & Efficiency Metrics</div>
+
+      <div class="metric-card">
+        <div class="metric-name">💰 Total Sales ($)</div>
+        <div class="metric-inputs">
+          <div>
+            <label>Last 7 Days</label>
+            <input type="text" id="sales_last7" placeholder="$0.00" autocomplete="off">
+          </div>
+          <div>
+            <label>Prior 7 Days</label>
+            <input type="text" id="sales_prior7" placeholder="$0.00" autocomplete="off">
+          </div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-name">📢 Ad Spend ($)</div>
+        <div class="metric-inputs">
+          <div>
+            <label>Last 7 Days</label>
+            <input type="text" id="adspend_last7" placeholder="$0.00" autocomplete="off">
+          </div>
+          <div>
+            <label>Prior 7 Days</label>
+            <input type="text" id="adspend_prior7" placeholder="$0.00" autocomplete="off">
+          </div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-name">📊 ACoS (%)</div>
+        <div class="metric-inputs">
+          <div>
+            <label>Last 7 Days</label>
+            <input type="text" id="acos_last7" placeholder="e.g. 15.2%" autocomplete="off">
+          </div>
+          <div>
+            <label>Prior 7 Days</label>
+            <input type="text" id="acos_prior7" placeholder="e.g. 14.4%" autocomplete="off">
+          </div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-name">📈 TACoS (%)</div>
+        <div class="metric-inputs">
+          <div>
+            <label>Last 7 Days</label>
+            <input type="text" id="tacos_last7" placeholder="e.g. 8.7%" autocomplete="off">
+          </div>
+          <div>
+            <label>Prior 7 Days</label>
+            <input type="text" id="tacos_prior7" placeholder="e.g. 8.1%" autocomplete="off">
+          </div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-name">🌱 Organic Units (number, not %)</div>
+        <div class="metric-inputs">
+          <div>
+            <label>Last 7 Days</label>
+            <input type="text" id="organic_last7" placeholder="e.g. 312" autocomplete="off">
+          </div>
+          <div>
+            <label>Prior 7 Days</label>
+            <input type="text" id="organic_prior7" placeholder="e.g. 289" autocomplete="off">
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="section">
+      <div class="section-title">3. What We Want to Achieve This Week</div>
+      <div class="field">
+        <label>Outcome 1 <span class="required">*</span> <span class="hint">— List the 1-3 most important things that need to happen this week. Be specific — not 'follow up on listing' but 'Myca to submit updated bullet points on ASIN B08X by Wednesday.'</span></label>
+        <input type="text" id="outcome1" required placeholder="e.g., Myca to submit updated bullet points on ASIN B08X by Wednesday" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Outcome 2</label>
+        <input type="text" id="outcome2" placeholder="e.g., Reduce ACoS to under 25% on top 3 ASINs" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Outcome 3</label>
+        <input type="text" id="outcome3" placeholder="e.g., Resolve inventory discrepancy with 3PL" autocomplete="off">
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">4. Operational Load</div>
+      <div class="row-2">
+        <div class="field">
+          <label>Total Open Tasks</label>
+          <input type="number" id="open_tasks" placeholder="0" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>Tasks Expected to Close This Week</label>
+          <input type="number" id="close_tasks" placeholder="0" autocomplete="off">
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">5. Blocked Tasks</div>
+      <div class="field">
+        <label>Blocked by Client <span class="required">*</span> <span class="hint">— what are you waiting on?</span></label>
+        <textarea id="blocked_client" required placeholder="e.g., Waiting on product images for B0CTNX1D6D, requested Feb 10. If nothing is blocked, write 'None'." autocomplete="off"></textarea>
+      </div>
+      <div class="field">
+        <label>Blocked Internally <span class="required">*</span> <span class="hint">— what's stuck on your side?</span></label>
+        <textarea id="blocked_internal" required placeholder="e.g., PPC keyword research delayed — Sohaib at capacity. If nothing is blocked, write 'None'." autocomplete="off"></textarea>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">6. What Might Stop Us</div>
+      <div class="field">
+        <label>Check all that apply:</label>
+        <div class="checkbox-group">
+          <label><input type="checkbox" value="Client delays"> Client delays</label>
+          <label><input type="checkbox" value="Inventory issues"> Inventory issues</label>
+          <label><input type="checkbox" value="Internal capacity"> Internal capacity</label>
+          <label><input type="checkbox" value="Pending decisions"> Pending decisions</label>
+          <label><input type="checkbox" value="Amazon or technical risk"> Amazon or technical risk</label>
+        </div>
+      </div>
+      <div class="field">
+        <label>Brief explanation <span class="required">*</span></label>
+        <textarea id="risk_explanation" required placeholder="If you checked anything above, explain what's happening and what the plan is. If you checked nothing, write 'No active risks' so I know you considered it." autocomplete="off"></textarea>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">7. Help Needed from Leadership?</div>
+      <div class="field">
+        <div class="radio-group">
+          <label><input type="radio" name="help_needed" value="No" required> No</label>
+          <label><input type="radio" name="help_needed" value="Yes"> Yes</label>
+        </div>
+      </div>
+      <div class="field" id="help_details_field" style="display:none">
+        <label>What specifically do you need? <span class="required">*</span> <span class="hint">— What exactly do you need, from whom, and by when?</span></label>
+        <textarea id="help_details" placeholder="e.g., Need decision on whether to lower price on B0CTNX1D6D by Wednesday. Need Hymie to approve $500/day budget increase." autocomplete="off"></textarea>
+      </div>
+    </div>
+
+    <button type="submit" class="submit-btn" id="submitBtn">Submit Monday Brief</button>
+  </form>
+
+  <div id="success">
+    <div class="checkmark">✓</div>
+    <h2>Brief Submitted</h2>
+    <p>Your Official Redcon1 Store Monday Brief has been logged to ClickUp.</p>
+  </div>
+</div>
+
+<script>
+  const today = new Date();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - today.getDay() + 1);
+  document.getElementById('week_of').value = monday.toISOString().split('T')[0];
+
+  document.querySelectorAll('input[name="help_needed"]').forEach(r => {
+    r.addEventListener('change', () => {
+      document.getElementById('help_details_field').style.display =
+        document.querySelector('input[name="help_needed"]:checked').value === 'Yes' ? 'block' : 'none';
+    });
+  });
+
+  document.getElementById('briefForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+    document.getElementById('error').style.display = 'none';
+
+    const risks = [];
+    document.querySelectorAll('.checkbox-group input:checked').forEach(cb => {
+      risks.push(cb.value);
+    });
+
+    const data = {
+      account: "Official Redcon1 Store",
+      list_id: "901711168926",
+      brief_type: "Monday Intentions",
+      pm_name: document.getElementById('pm_name').value,
+      week_of: document.getElementById('week_of').value,
+      account_pulse: document.getElementById('account_pulse').value,
+      cancellation_risk: document.querySelector('input[name="cancellation_risk"]:checked')?.value || '',
+      client_sentiment: document.querySelector('input[name="client_sentiment"]:checked')?.value || '',
+      exec_summary: document.getElementById('exec_summary').value,
+      metrics: {
+        total_sales: { last7: document.getElementById('sales_last7').value, prior7: document.getElementById('sales_prior7').value },
+        ad_spend: { last7: document.getElementById('adspend_last7').value, prior7: document.getElementById('adspend_prior7').value },
+        acos: { last7: document.getElementById('acos_last7').value, prior7: document.getElementById('acos_prior7').value },
+        tacos: { last7: document.getElementById('tacos_last7').value, prior7: document.getElementById('tacos_prior7').value },
+        organic_units: { last7: document.getElementById('organic_last7').value, prior7: document.getElementById('organic_prior7').value }
+      },
+      outcomes: [
+        document.getElementById('outcome1').value,
+        document.getElementById('outcome2').value,
+        document.getElementById('outcome3').value
+      ].filter(Boolean),
+      operational_load: {
+        open_tasks: document.getElementById('open_tasks').value,
+        tasks_to_close: document.getElementById('close_tasks').value
+      },
+      blocked: {
+        by_client: document.getElementById('blocked_client').value,
+        internally: document.getElementById('blocked_internal').value
+      },
+      risks: risks,
+      risk_explanation: document.getElementById('risk_explanation').value,
+      help_needed: document.querySelector('input[name="help_needed"]:checked').value,
+      help_details: document.getElementById('help_details')?.value || '',
+    };
+
+    const WEBHOOK_URL = "https://hook.us2.make.com/9fniqff8rca1gmbbbiqjwb1uwnz59wmf";
+
+    try {
+      const response = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Submission failed');
+      document.getElementById('briefForm').style.display = 'none';
+      document.getElementById('success').style.display = 'block';
+    } catch (err) {
+      document.getElementById('error').textContent = 'Submission failed. Please try again or contact Hymie.';
+      document.getElementById('error').style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Submit Monday Brief';
+    }
+  });
+</script>
+</body>
+</html>
