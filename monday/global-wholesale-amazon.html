@@ -284,6 +284,10 @@
           </div>
         </div>
       </div>
+      <div class="field" id="health_explanation_field" style="display:none">
+        <label>Please explain the situation <span class="required">*</span></label>
+        <textarea id="health_explanation" placeholder="What's going on? Give enough detail that leadership can act without asking follow-up questions." autocomplete="off"></textarea>
+      </div>
     </div>
     <div class="section">
       <div class="section-title">1. Executive Account Update</div>
@@ -455,6 +459,21 @@
   monday.setDate(today.getDate() - today.getDay() + 1);
   document.getElementById('week_of').value = monday.toISOString().split('T')[0];
 
+
+  // Show/hide health explanation field based on cancellation risk or sentiment
+  function checkHealthExplanation() {
+    const risk = document.querySelector('input[name="cancellation_risk"]:checked')?.value || '';
+    const sentiment = document.querySelector('input[name="client_sentiment"]:checked')?.value || '';
+    const needsExplanation = ['Yes', 'Likely'].includes(risk) || ['Slightly Upset', 'Very Upset'].includes(sentiment);
+    const field = document.getElementById('health_explanation_field');
+    const textarea = document.getElementById('health_explanation');
+    field.style.display = needsExplanation ? 'block' : 'none';
+    textarea.required = needsExplanation;
+  }
+  document.querySelectorAll('input[name="cancellation_risk"], input[name="client_sentiment"]').forEach(r => {
+    r.addEventListener('change', checkHealthExplanation);
+  });
+
   document.querySelectorAll('input[name="help_needed"]').forEach(r => {
     r.addEventListener('change', () => {
       document.getElementById('help_details_field').style.display =
@@ -483,6 +502,7 @@
       account_pulse: document.getElementById('account_pulse').value,
       cancellation_risk: document.querySelector('input[name="cancellation_risk"]:checked')?.value || '',
       client_sentiment: document.querySelector('input[name="client_sentiment"]:checked')?.value || '',
+      health_explanation: document.getElementById('health_explanation')?.value || '',
       exec_summary: document.getElementById('exec_summary').value,
       metrics: {
         total_sales: { last7: document.getElementById('sales_last7').value, prior7: document.getElementById('sales_prior7').value },
