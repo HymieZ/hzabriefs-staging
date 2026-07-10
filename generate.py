@@ -3,18 +3,21 @@
 Generate Monday + Friday PM Brief HTML files for all clients.
 Each file is hardcoded to one client with their PM Briefs list ID.
 
-v4 — Feb 24, 2026
+v5 — May 6, 2026
 COMBINES:
 - Feb 23 expanded prompts (Account Pulse full paragraph, required blocked/risk fields)
   NOW APPLIED TO BOTH Monday AND Friday (previously only Monday had expanded prompts)
 - Feb 24 metric card layout fix (each metric in its own card, prevents ACoS/Organic swap)
 - Updated PM dropdown: Sheralyn, Kristina, Ahsan
+- Mar 10 Client Health Assessment section (cancellation risk + client sentiment)
+  NOW BAKED INTO generate.py — previously only deployed to individual files
 
 CHANGELOG:
 - v1 (Feb 19): Initial forms with grid metrics, short prompts
 - v2 (Feb 23): Monday expanded prompts, PM dropdown updated
 - v3 (Feb 24): Metric card layout fix (both forms), but old prompts on Friday
 - v4 (Feb 24): All fixes combined — expanded prompts on BOTH forms + metric cards
+- v5 (May 6): Add Client Health Assessment (cancellation_risk, client_sentiment, health_explanation) to template
 """
 
 import os, re
@@ -37,6 +40,7 @@ CLIENTS = {
     "Personalized Passion": "901711168930",
     "OX Plastic Amazon": "901711168935",
     "Savor Goods": "901711168944",
+    "Savor Goods Walmart": "901713161887",
     "Shalam Group": "901711168949",
     "Spirit Linen": "901711168955",
     "Zakys Brand LLC": "901711168965",
@@ -49,6 +53,15 @@ CLIENTS = {
     "Galaxy by Harvic": "901711169013",
     "Balancing Act": "901711169024",
     "Regines Super Store": "901711168879",
+    "Josmo Shoes": "901713135213",
+    "Kaffy": "901713027809",
+    "Sophie Select": "901711998168",
+    "Wild Bobby": "901713292512",
+    "Superior Products": "901713372751",
+    "Laundry Labs": "901713799908",
+    "NEXGEL": "901714846176",
+    "VytaDose": "901714873370",
+    "Silly George": "901714846178",
 }
 
 WEBHOOK_URL = "https://hook.us2.make.com/9fniqff8rca1gmbbbiqjwb1uwnz59wmf"
@@ -58,11 +71,11 @@ def slug(name):
 
 def generate_html(client_name, list_id, brief_type):
     is_monday = brief_type == "monday"
-    title_type = "Intentions Brief" if is_monday else "Back Brief"
+    title_type = "Intentions Brief" if is_monday else "Weekly Brief"
     brief_type_value = "Monday Intentions" if is_monday else "Friday Back Brief"
-    badge_text = "Monday Brief" if is_monday else "Friday Brief"
-    subtitle = "Forward-looking weekly plan. Submit Monday morning before standup." if is_monday else "End-of-week accountability check. Submit Friday before end of day."
-    submit_label = "Submit Monday Brief" if is_monday else "Submit Friday Brief"
+    badge_text = "Monday Brief" if is_monday else "Weekly Brief"
+    subtitle = "Forward-looking weekly plan. Submit Monday morning before standup." if is_monday else "One brief per week: score last week\'s commitments, sum up the week, commit to next week. Numbers auto-fill from live data \u2014 verify and correct. Submit Friday before end of day."
+    submit_label = "Submit Monday Brief" if is_monday else "Submit Weekly Brief"
 
     # === ACCOUNT PULSE — expanded for BOTH forms ===
     if is_monday:
@@ -105,57 +118,25 @@ def generate_html(client_name, list_id, brief_type):
       ].filter(Boolean),"""
     else:
         outcomes_section = """    <div class="section">
-      <div class="section-title">3. What We Actually Achieved</div>
-      <div class="field">
-        <label>Monday's Outcome 1 — Did it happen? <span class="required">*</span></label>
-        <div class="row-2">
-          <select id="outcome1_status" required autocomplete="off">
-            <option value="">Status</option>
-            <option>Done</option>
-            <option>Partial</option>
-            <option>Not Done</option>
-            <option>Blocked</option>
-          </select>
-          <input type="text" id="outcome1_note" placeholder="Brief note" autocomplete="off">
-        </div>
+      <div class="section-title">3. Last Week's Commitments \u2014 Scorecard</div>
+      <p class="hint" id="scorecard_hint" style="color:var(--text-muted);font-size:13px;margin-bottom:12px">Loading last week's commitments\u2026</p>
+      <div id="scorecard_rows"></div>
+      <div class="field" id="scorecard_manual" style="display:none">
+        <label>What did you commit to last week, and how did it go? <span class="hint">\u2014 nothing found automatically; recap and score yourself</span></label>
+        <textarea id="scorecard_freetext" placeholder="e.g., Launch B0DXXX \u2014 Done. Reduce ACoS below 25% \u2014 Partial (26.1%)." autocomplete="off"></textarea>
       </div>
       <div class="field">
-        <label>Monday's Outcome 2</label>
-        <div class="row-2">
-          <select id="outcome2_status" autocomplete="off">
-            <option value="">Status</option>
-            <option>Done</option>
-            <option>Partial</option>
-            <option>Not Done</option>
-            <option>Blocked</option>
-          </select>
-          <input type="text" id="outcome2_note" placeholder="Brief note" autocomplete="off">
-        </div>
-      </div>
-      <div class="field">
-        <label>Monday's Outcome 3</label>
-        <div class="row-2">
-          <select id="outcome3_status" autocomplete="off">
-            <option value="">Status</option>
-            <option>Done</option>
-            <option>Partial</option>
-            <option>Not Done</option>
-            <option>Blocked</option>
-          </select>
-          <input type="text" id="outcome3_note" placeholder="Brief note" autocomplete="off">
-        </div>
-      </div>
-      <div class="field">
-        <label>Anything accomplished this week that wasn't planned Monday?</label>
-        <textarea id="unplanned_wins" placeholder="e.g., Client requested rush listing update — completed same day" autocomplete="off"></textarea>
+        <label>Anything accomplished this week that wasn't planned?</label>
+        <textarea id="unplanned_wins" placeholder="e.g., Client requested rush listing update \u2014 completed same day" autocomplete="off"></textarea>
       </div>
     </div>"""
         outcomes_js = """
-      outcomes_review: [
-        { status: document.getElementById('outcome1_status').value, note: document.getElementById('outcome1_note').value },
-        { status: document.getElementById('outcome2_status').value, note: document.getElementById('outcome2_note').value },
-        { status: document.getElementById('outcome3_status').value, note: document.getElementById('outcome3_note').value }
-      ].filter(o => o.status),
+      scorecard: (window.__prevCommitments || []).map(function(t, i) {
+        return { text: t,
+                 status: (document.getElementById('sc_status_' + i) || {}).value || '',
+                 note: (document.getElementById('sc_note_' + i) || {}).value || '' };
+      }),
+      scorecard_freetext: document.getElementById('scorecard_freetext')?.value || '',
       unplanned_wins: document.getElementById('unplanned_wins')?.value || '',"""
 
     # === FRIDAY EXTRA SECTION ===
@@ -164,14 +145,27 @@ def generate_html(client_name, list_id, brief_type):
     if not is_monday:
         friday_extra_section = """
     <div class="section">
-      <div class="section-title">8. Next Week Lookahead</div>
+      <div class="section-title">8. Commitments for Next Week</div>
       <div class="field">
-        <label>What's the #1 priority next week? <span class="required">*</span> <span class="hint">— Be specific about what needs to happen and who owns it.</span></label>
-        <textarea id="next_week_priority" required placeholder="e.g., Launch new ASIN B0DXXX and get first reviews via Vine. Jahan to set up SP campaign by Tuesday." autocomplete="off"></textarea>
+        <label>Commitment 1 <span class="required">*</span> <span class="hint">\u2014 the 1\u20133 most important things that WILL happen next week. Specific: what, who, by when. These get scored next Friday.</span></label>
+        <input type="text" id="commit1" required placeholder="e.g., Jahan to launch SP campaign for B0DXXX by Tuesday" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Commitment 2</label>
+        <input type="text" id="commit2" placeholder="e.g., Reduce ACoS to under 25% on top 3 ASINs" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Commitment 3</label>
+        <input type="text" id="commit3" placeholder="e.g., Resolve inventory discrepancy with 3PL" autocomplete="off">
       </div>
     </div>"""
         friday_js_extra = """
-      next_week_priority: document.getElementById('next_week_priority')?.value || '',"""
+      commitments: [
+        document.getElementById('commit1')?.value || '',
+        document.getElementById('commit2')?.value || '',
+        document.getElementById('commit3')?.value || ''
+      ].filter(Boolean),
+      autofill_asof: window.__autofillAsof || '',"""
 
     return f'''<!DOCTYPE html>
 <html lang="en">
@@ -459,12 +453,9 @@ def generate_html(client_name, list_id, brief_type):
           </div>
         </div>
       </div>
-    </div>
-    <div class="section">
-      <div class="section-title">{"1. Executive Account Update" if is_monday else "1. End-of-Week Summary"}</div>
-      <div class="field">
-        <label>{exec_label} <span class="required">*</span></label>
-        <textarea id="exec_summary" required placeholder="{exec_placeholder}" autocomplete="off"></textarea>
+      <div class="field" id="health_explanation_field" style="display:none">
+        <label>Please explain the situation <span class="required">*</span></label>
+        <textarea id="health_explanation" placeholder="What's going on? Give enough detail that leadership can act without asking follow-up questions." autocomplete="off"></textarea>
       </div>
     </div>
 
@@ -623,6 +614,19 @@ def generate_html(client_name, list_id, brief_type):
     }});
   }});
 
+  function checkHealthExplanation() {{
+    const risk = document.querySelector('input[name="cancellation_risk"]:checked')?.value || '';
+    const sentiment = document.querySelector('input[name="client_sentiment"]:checked')?.value || '';
+    const needsExplanation = ['Yes', 'Likely'].includes(risk) || ['Slightly Upset', 'Very Upset'].includes(sentiment);
+    const field = document.getElementById('health_explanation_field');
+    const textarea = document.getElementById('health_explanation');
+    field.style.display = needsExplanation ? 'block' : 'none';
+    textarea.required = needsExplanation;
+  }}
+  document.querySelectorAll('input[name="cancellation_risk"], input[name="client_sentiment"]').forEach(r => {{
+    r.addEventListener('change', checkHealthExplanation);
+  }});
+
   document.getElementById('briefForm').addEventListener('submit', async (e) => {{
     e.preventDefault();
     const btn = document.getElementById('submitBtn');
@@ -644,7 +648,7 @@ def generate_html(client_name, list_id, brief_type):
       account_pulse: document.getElementById('account_pulse').value,
       cancellation_risk: document.querySelector('input[name="cancellation_risk"]:checked')?.value || '',
       client_sentiment: document.querySelector('input[name="client_sentiment"]:checked')?.value || '',
-      exec_summary: document.getElementById('exec_summary').value,
+      health_explanation: document.getElementById('health_explanation')?.value || '',
       metrics: {{
         total_sales: {{ last7: document.getElementById('sales_last7').value, prior7: document.getElementById('sales_prior7').value }},
         ad_spend: {{ last7: document.getElementById('adspend_last7').value, prior7: document.getElementById('adspend_prior7').value }},
@@ -684,9 +688,92 @@ def generate_html(client_name, list_id, brief_type):
       btn.textContent = '{submit_label}';
     }}
   }});
+
+  // === AUTOFILL (Weekly Brief) ===
+  const AUTOFILL_URL = "https://brief-autofill-tewpu3wtza-uc.a.run.app";
+  const AUTOFILL_KEY = "_a4d13l9ay0RAGbf69pd3a6T";
+  const IS_WEEKLY = "{brief_type}" === "friday";
+  window.__prevCommitments = [];
+  window.__autofillAsof = '';
+  function setVal(id, v, suffix) {{
+    const el = document.getElementById(id);
+    if (el && v !== null && v !== undefined && el.value === '') el.value = (suffix === '$' ? '$' : '') + v + (suffix && suffix !== '$' ? suffix : '');
+  }}
+  async function runAutofill() {{
+    if (!IS_WEEKLY) return;
+    const wk = document.getElementById('week_of');
+    if (wk && !wk.value) {{
+      const d = new Date(); d.setDate(d.getDate() - ((d.getDay() + 6) % 7));  // this week's Monday
+      wk.value = d.toISOString().slice(0, 10);
+    }}
+    const hint = document.getElementById('scorecard_hint');
+    try {{
+      const r = await fetch(AUTOFILL_URL + '?list_id={list_id}&client=' + encodeURIComponent("{client_name}") + '&key=' + AUTOFILL_KEY);
+      if (!r.ok) throw new Error('autofill http ' + r.status);
+      const d = await r.json();
+      window.__autofillAsof = d.asof || '';
+      const met = d.metrics || {{}};
+      if (met && met.total_sales) {{
+        setVal('sales_last7', met.total_sales.last7, '$'); setVal('sales_prior7', met.total_sales.prior7, '$');
+        setVal('adspend_last7', met.ad_spend.last7, '$'); setVal('adspend_prior7', met.ad_spend.prior7, '$');
+        setVal('acos_last7', met.acos.last7, '%'); setVal('acos_prior7', met.acos.prior7, '%');
+        setVal('tacos_last7', met.tacos.last7, '%'); setVal('tacos_prior7', met.tacos.prior7, '%');
+        setVal('organic_last7', met.organic_units.last7, ''); setVal('organic_prior7', met.organic_units.prior7, '');
+      }}
+      if (d.operational_load !== null && d.operational_load !== undefined) setVal('open_tasks', d.operational_load, '');
+      const prev = d.prev_commitments || [];
+      window.__prevCommitments = prev;
+      const rows = document.getElementById('scorecard_rows');
+      if (prev.length && rows) {{
+        hint.textContent = "Scored next Friday \u2014 status is required for each.";
+        prev.forEach((t, i) => {{
+          const div = document.createElement('div');
+          div.className = 'field';
+          div.innerHTML = '<label>' + (i + 1) + '. ' + t.replace(/</g, '&lt;') + '</label>' +
+            '<div class="row-2">' +
+            '<select id="sc_status_' + i + '" required><option value="">Status</option><option>Done</option><option>Partial</option><option>Not Done</option><option>Blocked</option></select>' +
+            '<input type="text" id="sc_note_' + i + '" placeholder="Brief note" autocomplete="off">' +
+            '</div>';
+          rows.appendChild(div);
+        }});
+      }} else {{
+        if (hint) hint.style.display = 'none';
+        const man = document.getElementById('scorecard_manual');
+        if (man) man.style.display = 'block';
+      }}
+    }} catch (e) {{
+      if (hint) hint.style.display = 'none';
+      const man = document.getElementById('scorecard_manual');
+      if (man) man.style.display = 'block';
+    }}
+  }}
+  runAutofill();
 </script>
 </body>
 </html>'''
+
+
+
+def generate_notice(client_name):
+    s = slug(client_name)
+    return f"""<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{client_name} — Monday Brief Retired</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+body {{ font-family: 'DM Sans', system-ui, sans-serif; background: #0f1117; color: #e8eaed; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }}
+.card {{ max-width: 560px; background: #1a1d27; border: 1px solid #2d3140; border-radius: 12px; padding: 40px; text-align: center; }}
+h1 {{ font-family: 'DM Serif Display', serif; font-size: 26px; margin-bottom: 14px; }}
+p {{ color: #8b8fa3; line-height: 1.6; margin-bottom: 12px; }}
+a.btn {{ display: inline-block; margin-top: 18px; background: #7c6ef0; color: #fff; text-decoration: none; padding: 13px 26px; border-radius: 8px; font-weight: 600; }}
+</style></head><body>
+<div class="card">
+  <h1>Monday briefs are retired 🎉</h1>
+  <p><strong>{client_name}</strong> now has ONE brief per week — the Friday Weekly Brief. It scores last week's commitments and sets next week's, with sales numbers auto-filled for you.</p>
+  <p>Monday is now just the standup — nothing to write.</p>
+  <a class="btn" href="../friday/{s}.html">Open the Weekly Brief →</a>
+</div>
+</body></html>"""
 
 
 # Generate all files
@@ -699,7 +786,7 @@ for client_name, list_id in sorted(CLIENTS.items()):
     os.makedirs("monday", exist_ok=True)
     os.makedirs("friday", exist_ok=True)
 
-    monday_html = generate_html(client_name, list_id, "monday")
+    monday_html = generate_notice(client_name)
     with open(f"monday/{s}.html", 'w') as f:
         f.write(monday_html)
 
@@ -761,16 +848,16 @@ with open("index.html", 'w') as f:
   <p class="subtitle">Hymie Zebede Agency — Select your account and brief type</p>
   <div class="header-row">
     <div>Account</div>
-    <div>Monday Brief</div>
-    <div>Friday Brief</div>
+    <div></div>
+    <div>Weekly Brief</div>
   </div>
 """)
     for item in master_list:
         s = item['slug']
         f.write(f'  <div class="client-row">\n')
         f.write(f'    <div class="name">{item["client"]}</div>\n')
-        f.write(f'    <a href="monday/{s}.html">Monday \u2192</a>\n')
-        f.write(f'    <a href="friday/{s}.html">Friday \u2192</a>\n')
+        f.write(f'    <div></div>\n')
+        f.write(f'    <a href="friday/{s}.html">Weekly Brief \u2192</a>\n')
         f.write(f'  </div>\n')
     f.write("</div>\n</body>\n</html>")
 

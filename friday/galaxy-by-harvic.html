@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Galaxy by Harvic — Back Brief</title>
+<title>Galaxy by Harvic — Weekly Brief</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -230,9 +230,9 @@
 <body>
 <div class="container">
   <div class="header">
-    <div class="badge">Friday Brief</div>
-    <h1>Galaxy by Harvic — Back Brief</h1>
-    <p>End-of-week accountability check. Submit Friday before end of day.</p>
+    <div class="badge">Weekly Brief</div>
+    <h1>Galaxy by Harvic — Weekly Brief</h1>
+    <p>One brief per week: score last week's commitments, sum up the week, commit to next week. Numbers auto-fill from live data — verify and correct. Submit Friday before end of day.</p>
   </div>
   <div id="error" class="error-message"></div>
   <form id="briefForm" autocomplete="off">
@@ -287,13 +287,6 @@
       <div class="field" id="health_explanation_field" style="display:none">
         <label>Please explain the situation <span class="required">*</span></label>
         <textarea id="health_explanation" placeholder="What's going on? Give enough detail that leadership can act without asking follow-up questions." autocomplete="off"></textarea>
-      </div>
-    </div>
-    <div class="section">
-      <div class="section-title">1. End-of-Week Summary</div>
-      <div class="field">
-        <label>What happened this week? <span class="required">*</span></label>
-        <textarea id="exec_summary" required placeholder="What were the biggest wins and misses this week? What specific actions were taken and what were the results? Any surprises? Be specific — names, ASINs, numbers." autocomplete="off"></textarea>
       </div>
     </div>
 
@@ -374,48 +367,15 @@
     </div>
 
     <div class="section">
-      <div class="section-title">3. What We Actually Achieved</div>
-      <div class="field">
-        <label>Monday's Outcome 1 — Did it happen? <span class="required">*</span></label>
-        <div class="row-2">
-          <select id="outcome1_status" required autocomplete="off">
-            <option value="">Status</option>
-            <option>Done</option>
-            <option>Partial</option>
-            <option>Not Done</option>
-            <option>Blocked</option>
-          </select>
-          <input type="text" id="outcome1_note" placeholder="Brief note" autocomplete="off">
-        </div>
+      <div class="section-title">3. Last Week's Commitments — Scorecard</div>
+      <p class="hint" id="scorecard_hint" style="color:var(--text-muted);font-size:13px;margin-bottom:12px">Loading last week's commitments…</p>
+      <div id="scorecard_rows"></div>
+      <div class="field" id="scorecard_manual" style="display:none">
+        <label>What did you commit to last week, and how did it go? <span class="hint">— nothing found automatically; recap and score yourself</span></label>
+        <textarea id="scorecard_freetext" placeholder="e.g., Launch B0DXXX — Done. Reduce ACoS below 25% — Partial (26.1%)." autocomplete="off"></textarea>
       </div>
       <div class="field">
-        <label>Monday's Outcome 2</label>
-        <div class="row-2">
-          <select id="outcome2_status" autocomplete="off">
-            <option value="">Status</option>
-            <option>Done</option>
-            <option>Partial</option>
-            <option>Not Done</option>
-            <option>Blocked</option>
-          </select>
-          <input type="text" id="outcome2_note" placeholder="Brief note" autocomplete="off">
-        </div>
-      </div>
-      <div class="field">
-        <label>Monday's Outcome 3</label>
-        <div class="row-2">
-          <select id="outcome3_status" autocomplete="off">
-            <option value="">Status</option>
-            <option>Done</option>
-            <option>Partial</option>
-            <option>Not Done</option>
-            <option>Blocked</option>
-          </select>
-          <input type="text" id="outcome3_note" placeholder="Brief note" autocomplete="off">
-        </div>
-      </div>
-      <div class="field">
-        <label>Anything accomplished this week that wasn't planned Monday?</label>
+        <label>Anything accomplished this week that wasn't planned?</label>
         <textarea id="unplanned_wins" placeholder="e.g., Client requested rush listing update — completed same day" autocomplete="off"></textarea>
       </div>
     </div>
@@ -475,13 +435,21 @@
     </div>
 
     <div class="section">
-      <div class="section-title">8. Next Week Lookahead</div>
+      <div class="section-title">8. Commitments for Next Week</div>
       <div class="field">
-        <label>What's the #1 priority next week? <span class="required">*</span> <span class="hint">— Be specific about what needs to happen and who owns it.</span></label>
-        <textarea id="next_week_priority" required placeholder="e.g., Launch new ASIN B0DXXX and get first reviews via Vine. Jahan to set up SP campaign by Tuesday." autocomplete="off"></textarea>
+        <label>Commitment 1 <span class="required">*</span> <span class="hint">— the 1–3 most important things that WILL happen next week. Specific: what, who, by when. These get scored next Friday.</span></label>
+        <input type="text" id="commit1" required placeholder="e.g., Jahan to launch SP campaign for B0DXXX by Tuesday" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Commitment 2</label>
+        <input type="text" id="commit2" placeholder="e.g., Reduce ACoS to under 25% on top 3 ASINs" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Commitment 3</label>
+        <input type="text" id="commit3" placeholder="e.g., Resolve inventory discrepancy with 3PL" autocomplete="off">
       </div>
     </div>
-    <button type="submit" class="submit-btn" id="submitBtn">Submit Friday Brief</button>
+    <button type="submit" class="submit-btn" id="submitBtn">Submit Weekly Brief</button>
   </form>
 
   <div id="success">
@@ -497,8 +465,13 @@
   monday.setDate(today.getDate() - today.getDay() + 1);
   document.getElementById('week_of').value = monday.toISOString().split('T')[0];
 
+  document.querySelectorAll('input[name="help_needed"]').forEach(r => {
+    r.addEventListener('change', () => {
+      document.getElementById('help_details_field').style.display =
+        document.querySelector('input[name="help_needed"]:checked').value === 'Yes' ? 'block' : 'none';
+    });
+  });
 
-  // Show/hide health explanation field based on cancellation risk or sentiment
   function checkHealthExplanation() {
     const risk = document.querySelector('input[name="cancellation_risk"]:checked')?.value || '';
     const sentiment = document.querySelector('input[name="client_sentiment"]:checked')?.value || '';
@@ -510,13 +483,6 @@
   }
   document.querySelectorAll('input[name="cancellation_risk"], input[name="client_sentiment"]').forEach(r => {
     r.addEventListener('change', checkHealthExplanation);
-  });
-
-  document.querySelectorAll('input[name="help_needed"]').forEach(r => {
-    r.addEventListener('change', () => {
-      document.getElementById('help_details_field').style.display =
-        document.querySelector('input[name="help_needed"]:checked').value === 'Yes' ? 'block' : 'none';
-    });
   });
 
   document.getElementById('briefForm').addEventListener('submit', async (e) => {
@@ -541,7 +507,6 @@
       cancellation_risk: document.querySelector('input[name="cancellation_risk"]:checked')?.value || '',
       client_sentiment: document.querySelector('input[name="client_sentiment"]:checked')?.value || '',
       health_explanation: document.getElementById('health_explanation')?.value || '',
-      exec_summary: document.getElementById('exec_summary').value,
       metrics: {
         total_sales: { last7: document.getElementById('sales_last7').value, prior7: document.getElementById('sales_prior7').value },
         ad_spend: { last7: document.getElementById('adspend_last7').value, prior7: document.getElementById('adspend_prior7').value },
@@ -549,11 +514,12 @@
         tacos: { last7: document.getElementById('tacos_last7').value, prior7: document.getElementById('tacos_prior7').value },
         organic_units: { last7: document.getElementById('organic_last7').value, prior7: document.getElementById('organic_prior7').value }
       },
-      outcomes_review: [
-        { status: document.getElementById('outcome1_status').value, note: document.getElementById('outcome1_note').value },
-        { status: document.getElementById('outcome2_status').value, note: document.getElementById('outcome2_note').value },
-        { status: document.getElementById('outcome3_status').value, note: document.getElementById('outcome3_note').value }
-      ].filter(o => o.status),
+      scorecard: (window.__prevCommitments || []).map(function(t, i) {
+        return { text: t,
+                 status: (document.getElementById('sc_status_' + i) || {}).value || '',
+                 note: (document.getElementById('sc_note_' + i) || {}).value || '' };
+      }),
+      scorecard_freetext: document.getElementById('scorecard_freetext')?.value || '',
       unplanned_wins: document.getElementById('unplanned_wins')?.value || '',
       operational_load: {
         open_tasks: document.getElementById('open_tasks').value,
@@ -567,7 +533,12 @@
       risk_explanation: document.getElementById('risk_explanation').value,
       help_needed: document.querySelector('input[name="help_needed"]:checked').value,
       help_details: document.getElementById('help_details')?.value || '',
-      next_week_priority: document.getElementById('next_week_priority')?.value || '',
+      commitments: [
+        document.getElementById('commit1')?.value || '',
+        document.getElementById('commit2')?.value || '',
+        document.getElementById('commit3')?.value || ''
+      ].filter(Boolean),
+      autofill_asof: window.__autofillAsof || '',
     };
 
     const WEBHOOK_URL = "https://hook.us2.make.com/9fniqff8rca1gmbbbiqjwb1uwnz59wmf";
@@ -585,9 +556,69 @@
       document.getElementById('error').textContent = 'Submission failed. Please try again or contact Hymie.';
       document.getElementById('error').style.display = 'block';
       btn.disabled = false;
-      btn.textContent = 'Submit Friday Brief';
+      btn.textContent = 'Submit Weekly Brief';
     }
   });
+
+  // === AUTOFILL (Weekly Brief) ===
+  const AUTOFILL_URL = "https://brief-autofill-tewpu3wtza-uc.a.run.app";
+  const AUTOFILL_KEY = "_a4d13l9ay0RAGbf69pd3a6T";
+  const IS_WEEKLY = "friday" === "friday";
+  window.__prevCommitments = [];
+  window.__autofillAsof = '';
+  function setVal(id, v, suffix) {
+    const el = document.getElementById(id);
+    if (el && v !== null && v !== undefined && el.value === '') el.value = (suffix === '$' ? '$' : '') + v + (suffix && suffix !== '$' ? suffix : '');
+  }
+  async function runAutofill() {
+    if (!IS_WEEKLY) return;
+    const wk = document.getElementById('week_of');
+    if (wk && !wk.value) {
+      const d = new Date(); d.setDate(d.getDate() - ((d.getDay() + 6) % 7));  // this week's Monday
+      wk.value = d.toISOString().slice(0, 10);
+    }
+    const hint = document.getElementById('scorecard_hint');
+    try {
+      const r = await fetch(AUTOFILL_URL + '?list_id=901711169013&client=' + encodeURIComponent("Galaxy by Harvic") + '&key=' + AUTOFILL_KEY);
+      if (!r.ok) throw new Error('autofill http ' + r.status);
+      const d = await r.json();
+      window.__autofillAsof = d.asof || '';
+      const met = d.metrics || {};
+      if (met && met.total_sales) {
+        setVal('sales_last7', met.total_sales.last7, '$'); setVal('sales_prior7', met.total_sales.prior7, '$');
+        setVal('adspend_last7', met.ad_spend.last7, '$'); setVal('adspend_prior7', met.ad_spend.prior7, '$');
+        setVal('acos_last7', met.acos.last7, '%'); setVal('acos_prior7', met.acos.prior7, '%');
+        setVal('tacos_last7', met.tacos.last7, '%'); setVal('tacos_prior7', met.tacos.prior7, '%');
+        setVal('organic_last7', met.organic_units.last7, ''); setVal('organic_prior7', met.organic_units.prior7, '');
+      }
+      if (d.operational_load !== null && d.operational_load !== undefined) setVal('open_tasks', d.operational_load, '');
+      const prev = d.prev_commitments || [];
+      window.__prevCommitments = prev;
+      const rows = document.getElementById('scorecard_rows');
+      if (prev.length && rows) {
+        hint.textContent = "Scored next Friday — status is required for each.";
+        prev.forEach((t, i) => {
+          const div = document.createElement('div');
+          div.className = 'field';
+          div.innerHTML = '<label>' + (i + 1) + '. ' + t.replace(/</g, '&lt;') + '</label>' +
+            '<div class="row-2">' +
+            '<select id="sc_status_' + i + '" required><option value="">Status</option><option>Done</option><option>Partial</option><option>Not Done</option><option>Blocked</option></select>' +
+            '<input type="text" id="sc_note_' + i + '" placeholder="Brief note" autocomplete="off">' +
+            '</div>';
+          rows.appendChild(div);
+        });
+      } else {
+        if (hint) hint.style.display = 'none';
+        const man = document.getElementById('scorecard_manual');
+        if (man) man.style.display = 'block';
+      }
+    } catch (e) {
+      if (hint) hint.style.display = 'none';
+      const man = document.getElementById('scorecard_manual');
+      if (man) man.style.display = 'block';
+    }
+  }
+  runAutofill();
 </script>
 </body>
 </html>
